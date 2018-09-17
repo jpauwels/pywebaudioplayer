@@ -3,7 +3,11 @@ import time
 import os.path
 from io import BytesIO
 from PIL import Image
+import pkg_resources
+import shutil
+import errno
 
+path = 'web'
 
 def _js(python_value):
     if isinstance(python_value, bool):
@@ -103,13 +107,8 @@ def wavesurfer(audio_path=None, controls={}, display={}, behaviour={}, samples=N
     unique_id = _id()
     if not audio_path and not samples:
         raise ValueError('Provide either a path to an audio file or samples')
-    html_code = '''
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/wavesurfer.js/1.4.0/wavesurfer.min.js"></script>
-    <!--<script src="static/wavesurfer.js/wavesurfer.min.js"></script>-->
-    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
-    <!--<script>$.fn.modal || document.write('<link href="static/css/bootstrap.min.css" rel="stylesheet" />')</script>-->'''
 
-    html_code += '''
+    html_code = '''
     <div id="waveform{}"></div>
     <p align="center">
     '''.format(unique_id)
@@ -145,7 +144,9 @@ def wavesurfer(audio_path=None, controls={}, display={}, behaviour={}, samples=N
 
     html_code += '\n    </p>'
 
-    html_code += '''
+    link_tags, script_tags = _manage_wavesurfer_files()
+
+    script_tags += '''
     <script type="text/javascript">
     var wavesurfer{id} = WaveSurfer.create({{
       container: '#waveform{id}',
@@ -160,8 +161,35 @@ def wavesurfer(audio_path=None, controls={}, display={}, behaviour={}, samples=N
     </script>'''.format(
         id=unique_id, path=audio_path, cursor=display['cursor_colour'], progress=display['played_wave_colour'], wave=display['unplayed_wave_colour'], split=_js(not behaviour['mono']), height=display['height'], norm=_js(behaviour['normalize']),
         bar_width=', barWidth: {}'.format(display['bar_width']) if display['bar_width'] else '')
-    return html_code
+    return '\n'.join([link_tags, html_code, script_tags])
 
+
+def _manage_wavesurfer_files():
+    global path
+    if not path:
+        link_tags = '    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">\n'
+        script_tags = '    <script src="{}"></script>\n'.format(pkg_resources.resource_filename(__name__, "wavesurfer.js/src/wavesurfer.js"))
+    elif path == 'web':
+        link_tags = '    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">\n'
+        script_tags = '    <script src="https://cdnjs.cloudflare.com/ajax/libs/wavesurfer.js/1.4.0/wavesurfer.min.js"></script>\n'
+    else:
+        _force_copy(pkg_resources.resource_filename(__name__, "wavesurfer.js/src"), os.path.join(path, "wavesurfer"))
+        # Write relative path
+        link_tags = '    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">\n'
+        script_tags = '    <script src="{}" type="module"></script>\n'.format(os.path.join(os.path.relpath(path), "wavesurfer/wavesurfer.js"))
+    return link_tags, script_tags
+
+def _force_copy(src, dest):
+    if os.path.isdir(src):
+        try:
+            os.makedirs(dest)
+        except OSError as e:
+            if e.errno != errno.EEXIST:
+                raise
+        for f in os.listdir(src):
+            _force_copy(os.path.join(src, f), os.path.join(dest, f))
+    else:
+        shutil.copyfile(src, dest)
 
 def waveform_playlist(tracks, controls={}, display={}, behaviour={}):
     # Set defaults
@@ -192,9 +220,6 @@ def waveform_playlist(tracks, controls={}, display={}, behaviour={}):
 
     unique_id = _id()
     html_code = '''
-    <link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
-    <link rel="stylesheet" href="https://naomiaro.github.io/waveform-playlist/css/main.css">
-
     <div id="top-bar" class="playlist-top-bar">
       <div class="playlist-toolbar">
         <div class="btn-group">
@@ -238,14 +263,13 @@ def waveform_playlist(tracks, controls={}, display={}, behaviour={}):
       </div>
     </form>
     <!--<div class="sound-status"></div>
-    <div class="loading-data"></div>-->
-
-    <script src="//code.jquery.com/jquery-3.2.1.min.js" integrity="sha256-hwg4gsxgFZhOsEEamdOYGBf13FyQuiTwlAQgxVSNgt4=" crossorigin="anonymous"></script>
-    <script type="text/javascript" src="https://naomiaro.github.io/waveform-playlist/js/waveform-playlist.var.js"></script>'''.format(
+    <div class="loading-data"></div>-->'''.format(
     unique_id
     )
 
-    html_code += '''
+    link_tags, script_tags, post_script_tags = _manage_waveform_playlist_files()
+
+    script_tags += '''
     <script type="text/javascript">
     var playlist = WaveformPlaylist.init({{
       samplesPerPixel: 1000,
@@ -265,7 +289,7 @@ def waveform_playlist(tracks, controls={}, display={}, behaviour={}):
       zoomLevels: [500, 1000, 3000, 5000]
     }});'''.format(unique_id, display['background_colour'], display['unplayed_wave_colour'], display['played_wave_colour'])
 
-    html_code += 'playlist.load([\n'
+    script_tags += 'playlist.load([\n'
     for track in tracks:
         if 'samples' in track:
             if 'path' in track:
@@ -273,7 +297,7 @@ def waveform_playlist(tracks, controls={}, display={}, behaviour={}):
             else:
                 raise ValueError('A path to write the audio to needs to be given when raw samples are passed')
 
-        html_code += '''
+        script_tags += '''
         {{
             "src": "{}",
             "name": "{}",
@@ -284,13 +308,40 @@ def waveform_playlist(tracks, controls={}, display={}, behaviour={}):
                       track['gain'] if 'gain' in track else 1,
                       _js(track['mute']) if 'mute' in track else 'false',
                       _js(track['solo']) if 'solo' in track else 'false',)
-    html_code += '''
+    script_tags += '''
     ]).then(function() {
     });
     </script>
-    <script type="text/javascript" src="https://naomiaro.github.io/waveform-playlist/js/emitter.js"></script>
     '''
-    return html_code
+    script_tags += post_script_tags
+    return '\n'.join([link_tags, html_code, script_tags])
+
+
+def _manage_waveform_playlist_files():
+    global path
+    if not path:
+        link_tags = '    <link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">\n'
+        link_tags += '    <link rel="stylesheet" href="{}">\n'.format(pkg_resources.resource_filename(__name__, "waveform-playlist/dist/waveform-playlist/css/main.css"))
+        script_tags = '    <script src="//code.jquery.com/jquery-3.2.1.min.js" integrity="sha256-hwg4gsxgFZhOsEEamdOYGBf13FyQuiTwlAQgxVSNgt4=" crossorigin="anonymous"></script>\n'
+        script_tags += '    <script type="text/javascript" src="{}"></script>\n'.format(pkg_resources.resource_filename(__name__, "waveform-playlist/dist/waveform-playlist/js/waveform-playlist.var.js"))
+        post_script_tags = '    <script type="text/javascript" src="{}"></script>\n'.format(pkg_resources.resource_filename(__name__, "waveform-playlist/dist/waveform-playlist/js/emitter.js"))
+    elif path == 'web':
+        link_tags = '    <link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">\n'
+        link_tags += '    <link rel="stylesheet" href="https://naomiaro.github.io/waveform-playlist/css/main.css">\n'
+        script_tags = '    <script src="//code.jquery.com/jquery-3.2.1.min.js" integrity="sha256-hwg4gsxgFZhOsEEamdOYGBf13FyQuiTwlAQgxVSNgt4=" crossorigin="anonymous"></script>\n'
+        script_tags += '    <script type="text/javascript" src="https://naomiaro.github.io/waveform-playlist/js/waveform-playlist.var.js"></script>\n'
+        post_script_tags = '    <script type="text/javascript" src="https://naomiaro.github.io/waveform-playlist/js/emitter.js"></script>\n'
+    else:
+        shutil.copy(pkg_resources.resource_filename(__name__, "waveform-playlist/dist/waveform-playlist/css/main.css"), path)
+        shutil.copy(pkg_resources.resource_filename(__name__, "waveform-playlist/dist/waveform-playlist/js/waveform-playlist.var.js"), path)
+        shutil.copy(pkg_resources.resource_filename(__name__, "waveform-playlist/dist/waveform-playlist/js/waveform-playlist.var.js.map"), path)
+        shutil.copy(pkg_resources.resource_filename(__name__, "waveform-playlist/dist/waveform-playlist/js/emitter.js"), path)
+        link_tags = '    <link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">\n'
+        link_tags += '    <link rel="stylesheet" href="{}">\n'.format(os.path.join(os.path.relpath(path), "main.css"))
+        script_tags = '    <script src="//code.jquery.com/jquery-3.2.1.min.js" integrity="sha256-hwg4gsxgFZhOsEEamdOYGBf13FyQuiTwlAQgxVSNgt4=" crossorigin="anonymous"></script>\n'
+        script_tags += '    <script type="text/javascript" src="{}"></script>\n'.format(os.path.join(os.path.relpath(path), "waveform-playlist.var.js"))
+        post_script_tags = '    <script type="text/javascript" src="{}"></script>\n'.format(os.path.join(os.path.relpath(path), "emitter.js"))
+    return link_tags, script_tags, post_script_tags
 
 
 def _figure_margins(ax):
@@ -324,9 +375,6 @@ def trackswitch(tracks, text='', seekable_image=None, seek_margin=None, mute=Tru
         seek_margin = _figure_margins(fig.gca())
         fig.savefig(seekable_image_path, dpi='figure')
     html_code = '''
-    <link href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" rel="stylesheet" integrity="sha384-wvfXpqpZZVQGK6TAh5PVlGOfQNHSoD2xbE+QkPxCAFlNEevoEH3Sl0sibVcOQVnN" crossorigin="anonymous" />
-    <link rel="stylesheet" href="https://audiolabs.github.io/trackswitch.js/css/trackswitch.min.css" />
-
     <div class="player{}"{}>'''.format(unique_id, ' style="width:{}px"'.format(image_width) if seekable_image else '')
     if text:
         html_code += '''
@@ -352,10 +400,11 @@ def trackswitch(tracks, text='', seekable_image=None, seek_margin=None, mute=Tru
         </ts-track>'''
 
     html_code += '''
-    </div>
+    </div>'''
 
-    <script src="https://code.jquery.com/jquery-3.2.1.min.js" integrity="sha256-hwg4gsxgFZhOsEEamdOYGBf13FyQuiTwlAQgxVSNgt4=" crossorigin="anonymous"></script>
-    <script src="https://audiolabs.github.io/trackswitch.js/js/trackswitch.min.js"></script>
+    link_tags, script_tags = _manage_trackswitch_files()
+
+    script_tags += '''
     <script type="text/javascript">
         jQuery(document).ready(function() {{
             jQuery(".player{}").trackSwitch({{mute: {}, solo: {}, globalsolo: {}, repeat: {}, radiosolo: {}, onlyradiosolo: {}, spacebar: {}, tabview: {}}});
@@ -363,4 +412,28 @@ def trackswitch(tracks, text='', seekable_image=None, seek_margin=None, mute=Tru
     </script>
     '''.format(unique_id, _js(mute), _js(solo), _js(globalsolo), _js(repeat), _js(radiosolo), _js(onlyradiosolo), _js(spacebar), _js(tabview))
 
-    return html_code
+    return '\n'.join([link_tags, html_code, script_tags])
+
+
+def _manage_trackswitch_files():
+    global path
+    if not path:
+        link_tags = '    <link href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" rel="stylesheet" integrity="sha384-wvfXpqpZZVQGK6TAh5PVlGOfQNHSoD2xbE+QkPxCAFlNEevoEH3Sl0sibVcOQVnN" crossorigin="anonymous" />\n'
+        link_tags += '    <link rel="stylesheet" href="{}" />\n'.format(pkg_resources.resource_filename(__name__, "trackswitch.js/css/trackswitch.css"))
+        script_tags = '    <script src="https://code.jquery.com/jquery-3.2.1.min.js" integrity="sha256-hwg4gsxgFZhOsEEamdOYGBf13FyQuiTwlAQgxVSNgt4=" crossorigin="anonymous"></script>\n'
+        script_tags += '       <script src="{}"></script>'''.format(pkg_resources.resource_filename(__name__, "trackswitch.js/js/trackswitch.js"))
+    elif path == 'web':
+        link_tags = '''
+        <link href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" rel="stylesheet" integrity="sha384-wvfXpqpZZVQGK6TAh5PVlGOfQNHSoD2xbE+QkPxCAFlNEevoEH3Sl0sibVcOQVnN" crossorigin="anonymous" />
+        <link rel="stylesheet" href="https://audiolabs.github.io/trackswitch.js/css/trackswitch.min.css" />'''
+        script_tags = '''
+        <script src="https://code.jquery.com/jquery-3.2.1.min.js" integrity="sha256-hwg4gsxgFZhOsEEamdOYGBf13FyQuiTwlAQgxVSNgt4=" crossorigin="anonymous"></script>
+        <script src="https://audiolabs.github.io/trackswitch.js/js/trackswitch.min.js"></script>'''
+    else:
+        shutil.copy(pkg_resources.resource_filename(__name__, "trackswitch.js/css/trackswitch.css"), path)
+        shutil.copy(pkg_resources.resource_filename(__name__, "trackswitch.js/js/trackswitch.js"), path)
+        link_tags = '    <link href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" rel="stylesheet" integrity="sha384-wvfXpqpZZVQGK6TAh5PVlGOfQNHSoD2xbE+QkPxCAFlNEevoEH3Sl0sibVcOQVnN" crossorigin="anonymous" />\n'
+        link_tags += '    <link rel="stylesheet" href="{}" />\n'.format(os.path.join(os.path.relpath(path), "trackswitch.css"))
+        script_tags = '    <script src="https://code.jquery.com/jquery-3.2.1.min.js" integrity="sha256-hwg4gsxgFZhOsEEamdOYGBf13FyQuiTwlAQgxVSNgt4=" crossorigin="anonymous"></script>\n'
+        script_tags += '       <script src="{}"></script>'''.format(os.path.join(os.path.relpath(path), "trackswitch.js"))
+    return link_tags, script_tags
