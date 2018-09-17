@@ -1,0 +1,18 @@
+[submodule "pywebaudioplayer/wavesurfer.js"]
+	path = pywebaudioplayer/wavesurfer.js
+	url = https://github.com/katspaugh/wavesurfer.js.git
+[submodule "pywebaudioplayer/waveform-playlist"]
+	path = pywebaudioplayer/waveform-playlist
+	url = https://github.com/naomiaro/waveform-playlist.git
+[submodule "pywebaudioplayer/trackswitch.js"]
+	path = pywebaudioplayer/trackswitch.js
+	url = https://github.com/audiolabs/trackswitch.js.git
+[submodule "pywebaudioplayer/font-awesome"]
+	path = pywebaudioplayer/font-awesome
+	url = https://github.com/FortAwesome/Font-Awesome.git
+[submodule "pywebaudioplayer/jquery"]
+	path = pywebaudioplayer/jquery
+	url = https://github.com/jquery/jquery.git
+[submodule "pywebaudioplayer/bootstrap"]
+	path = pywebaudioplayer/bootstrap
+	url = https://github.com/twbs/bootstrap.git
