@@ -1,7 +1,9 @@
-#!/usr/bin/env python2.7
+#!/usr/bin/env python
 from flask import Flask, render_template
 import pywebaudioplayer as pwa
 import numpy as np
+import matplotlib
+matplotlib.use("agg")
 import matplotlib.pyplot as plt
 
 app = Flask(__name__, static_folder='media')
