@@ -9,7 +9,7 @@ with open(path.join(here, 'README.md'), encoding='utf-8') as f:
 
 setuptools.setup(
     name="pywebaudioplayer",
-    version="0.0.2",
+    version="0.0.3",
     author="Johan Pauwels",
     author_email="johan.pauwels@gmail.com",
     description="Create HTML+JS code snippets for the waversurfer.js, waveform-playlist and trackswitch.js audio players from Python",
