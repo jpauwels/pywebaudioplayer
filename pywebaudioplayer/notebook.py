@@ -115,7 +115,7 @@ def trackswitch(tracks, text='', seekable_image=None, seek_margin=None, mute=Tru
         </p>'''.format(text)
     if seekable_image:
         html_code += '''
-        <img src="{}" data-style="width: {}px;" class="seekable"{}/>'''.format(seekable_image_path, image_width, ' data-seek-margin-left="{}" data-seek-margin-right="{}"'.format(*seek_margin) if seek_margin else '')
+        <img src="{}#{}" data-style="width: {}px;" class="seekable"{}/>'''.format(seekable_image_path, unique_id, image_width, ' data-seek-margin-left="{}" data-seek-margin-right="{}"'.format(*seek_margin) if seek_margin else '')
     for track in tracks:
         html_code += '''
         <ts-track{}{}>
