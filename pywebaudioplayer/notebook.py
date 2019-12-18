@@ -1,4 +1,6 @@
 # coding: utf-8
+
+# pywebaudioplayer for Jupyter Notebook. Loads external javascript libraries with RequireJS and uses built-in Bootstrap, jQuery and font-awesome.
 from .core import Image, _id, _js, _figure_margins, _write_samples, waveform_playlist
 
 
@@ -30,11 +32,8 @@ def wavesurfer(audio_path=None, controls={}, display={}, behaviour={}, samples=N
     unique_id = _id()
     if not audio_path and not samples:
         raise ValueError('Provide either a path to an audio file or samples')
-    html_code = '''
-    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
-    <!--<script>$.fn.modal || document.write('<link href="static/css/bootstrap.min.css" rel="stylesheet" />')</script>-->'''
 
-    html_code += '''
+    html_code = '''
     <div id="waveform{}"></div>
     <p align="center">
     '''.format(unique_id)
@@ -42,29 +41,29 @@ def wavesurfer(audio_path=None, controls={}, display={}, behaviour={}, samples=N
     if controls['backward_button']:
         html_code += '''
           <button class="btn btn-primary" onclick="wavesurfer{}.skipBackward()">
-            <i class="glyphicon glyphicon-backward"></i>
+            <i class="fa fa-backward"></i>
             {}
           </button>'''.format(unique_id, 'Backward' if controls['text_controls'] else '')
 
     html_code += '''
       <button class="btn btn-success" onclick="wavesurfer{}.playPause()">
-        <i class="glyphicon glyphicon-play"></i>
+        <i class="fa fa-play"></i>
         {} /
-        <i class="glyphicon glyphicon-pause"></i>
+        <i class="fa fa-pause"></i>
         {}
       </button>'''.format(unique_id, 'Play' if controls['text_controls'] else '', 'Pause' if controls['text_controls'] else '')
 
     if controls['forward_button']:
         html_code += '''
           <button class="btn btn-primary" onclick="wavesurfer{}.skipForward()">
-            <i class="glyphicon glyphicon-forward"></i>
+            <i class="fa fa-forward"></i>
             {}
           </button>'''.format(unique_id, 'Forward' if controls['text_controls'] else '')
 
     if controls['mute_button']:
         html_code += '''
           <button class="btn btn-danger" onclick="wavesurfer{}.toggleMute()">
-            <i class="glyphicon glyphicon-volume-off"></i>
+            <i class="fa fa-volume-off"></i>
             {}
           </button>'''.format(unique_id, 'Toggle Mute' if controls['text_controls'] else '')
 
@@ -72,8 +71,7 @@ def wavesurfer(audio_path=None, controls={}, display={}, behaviour={}, samples=N
 
     html_code += '''
     <script type="text/javascript">
-    requirejs.config({{paths: {{wavesurfer: "https://cdnjs.cloudflare.com/ajax/libs/wavesurfer.js/1.4.0/wavesurfer.min"}}}});
-    <!--require.config({{paths: {{wavesurfer: "static/wavesurfer.js/wavesurfer.min"}}}});-->
+    requirejs.config({{paths: {{wavesurfer: "//cdnjs.cloudflare.com/ajax/libs/wavesurfer.js/1.4.0/wavesurfer.min"}}}});
     requirejs(["wavesurfer"], function(WaveSurfer) {{
         wavesurfer{id} = WaveSurfer.create({{
             container: '#waveform{id}',
@@ -104,7 +102,6 @@ def trackswitch(tracks, text='', seekable_image=None, seek_margin=None, mute=Tru
         seek_margin = _figure_margins(fig.gca())
         fig.savefig(seekable_image_path, dpi='figure')
     html_code = '''
-    <link href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" rel="stylesheet" integrity="sha384-wvfXpqpZZVQGK6TAh5PVlGOfQNHSoD2xbE+QkPxCAFlNEevoEH3Sl0sibVcOQVnN" crossorigin="anonymous" />
     <link rel="stylesheet" href="https://audiolabs.github.io/trackswitch.js/css/trackswitch.min.css" />
 
     <div class="player{}"{}>'''.format(unique_id, ' style="width:{}px"'.format(image_width) if seekable_image else '')
