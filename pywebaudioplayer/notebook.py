@@ -102,7 +102,7 @@ def trackswitch(tracks, text='', seekable_image=None, seek_margin=None, mute=Tru
         seek_margin = _figure_margins(fig.gca())
         fig.savefig(seekable_image_path, dpi='figure')
     html_code = '''
-    <link rel="stylesheet" href="https://audiolabs.github.io/trackswitch.js/css/trackswitch.min.css" />
+    <link rel="stylesheet" href="//audiolabs.github.io/trackswitch.js/css/trackswitch.min.css" />
 
     <div class="player{}"{}>'''.format(unique_id, ' style="width:{}px"'.format(image_width) if seekable_image else '')
     if text:
@@ -131,10 +131,20 @@ def trackswitch(tracks, text='', seekable_image=None, seek_margin=None, mute=Tru
     html_code += '''
     </div>
 
-    <script src="https://audiolabs.github.io/trackswitch.js/js/trackswitch.min.js"></script>
     <script type="text/javascript">
-        jQuery(document).ready(function() {{
-            jQuery(".player{}").trackSwitch({{mute: {}, solo: {}, globalsolo: {}, repeat: {}, radiosolo: {}, onlyradiosolo: {}, spacebar: {}, tabview: {}}});
+        requirejs.config({{
+            "paths": {{
+                "trackswitch": "//audiolabs.github.io/trackswitch.js/js/trackswitch.min",
+            }},
+            "shim": {{
+                "trackswitch": ["jquery"],
+            }}
+        }});
+        
+        requirejs(["jquery", "trackswitch"], function(jQuery) {{
+            jQuery(document).ready(function() {{
+                jQuery('.player{}').trackSwitch({{mute: {}, solo: {}, globalsolo: {}, repeat: {}, radiosolo: {}, onlyradiosolo: {}, spacebar: {}, tabview: {}}});
+            }});
         }});
     </script>
     '''.format(unique_id, _js(mute), _js(solo), _js(globalsolo), _js(repeat), _js(radiosolo), _js(onlyradiosolo), _js(spacebar), _js(tabview))
