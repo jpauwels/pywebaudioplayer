@@ -104,10 +104,8 @@ def wavesurfer(audio_path=None, controls={}, display={}, behaviour={}, samples=N
     if not audio_path and not samples:
         raise ValueError('Provide either a path to an audio file or samples')
     html_code = '''
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/wavesurfer.js/1.4.0/wavesurfer.min.js"></script>
-    <!--<script src="static/wavesurfer.js/wavesurfer.min.js"></script>-->
-    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
-    <!--<script>$.fn.modal || document.write('<link href="static/css/bootstrap.min.css" rel="stylesheet" />')</script>-->'''
+    <script src="//cdnjs.cloudflare.com/ajax/libs/wavesurfer.js/3.2.0/wavesurfer.min.js" integrity="sha256-WqH3WERc59z6M4uSM9HgO5/m7TDvoUrkkVuC+bks1SY=" crossorigin="anonymous"></script>
+    <link rel="stylesheet" href="//stackpath.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css" integrity="sha384-HSMxcRTRxnN+Bdg0JdbxYKrThecOKuH5zCYotlSAcp1+c8xmyTe9GYg1l9a69psu" crossorigin="anonymous">'''
 
     html_code += '''
     <div id="waveform{}"></div>
@@ -192,8 +190,8 @@ def waveform_playlist(tracks, controls={}, display={}, behaviour={}):
 
     unique_id = _id()
     html_code = '''
-    <link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
-    <link rel="stylesheet" href="https://naomiaro.github.io/waveform-playlist/css/main.css">
+    <link rel="stylesheet" href="//stackpath.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css" integrity="sha384-HSMxcRTRxnN+Bdg0JdbxYKrThecOKuH5zCYotlSAcp1+c8xmyTe9GYg1l9a69psu" crossorigin="anonymous">
+    <link rel="stylesheet" href="//naomiaro.github.io/waveform-playlist/css/main.css">
 
     <div id="top-bar" class="playlist-top-bar">
       <div class="playlist-toolbar">
@@ -240,8 +238,8 @@ def waveform_playlist(tracks, controls={}, display={}, behaviour={}):
     <!--<div class="sound-status"></div>
     <div class="loading-data"></div>-->
 
-    <script src="//code.jquery.com/jquery-3.2.1.min.js" integrity="sha256-hwg4gsxgFZhOsEEamdOYGBf13FyQuiTwlAQgxVSNgt4=" crossorigin="anonymous"></script>
-    <script type="text/javascript" src="https://naomiaro.github.io/waveform-playlist/js/waveform-playlist.var.js"></script>'''.format(
+    <script src="//code.jquery.com/jquery-3.3.1.min.js" integrity="sha256-FgpCb/KJQlLNfOu91ta32o/NMZxltwRo8QtmkMRdAu8=" crossorigin="anonymous"></script>
+    <script type="text/javascript" src="//cdn.jsdelivr.net/npm/waveform-playlist@3.1.0/lib/app.min.js"></script>'''.format(
     unique_id
     )
 
@@ -288,7 +286,6 @@ def waveform_playlist(tracks, controls={}, display={}, behaviour={}):
     ]).then(function() {
     });
     </script>
-    <script type="text/javascript" src="https://naomiaro.github.io/waveform-playlist/js/emitter.js"></script>
     '''
     return html_code
 
@@ -324,8 +321,8 @@ def trackswitch(tracks, text='', seekable_image=None, seek_margin=None, mute=Tru
         seek_margin = _figure_margins(fig.gca())
         fig.savefig(seekable_image_path, dpi='figure')
     html_code = '''
-    <link href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" rel="stylesheet" integrity="sha384-wvfXpqpZZVQGK6TAh5PVlGOfQNHSoD2xbE+QkPxCAFlNEevoEH3Sl0sibVcOQVnN" crossorigin="anonymous" />
-    <link rel="stylesheet" href="https://audiolabs.github.io/trackswitch.js/css/trackswitch.min.css" />
+    <link href="//stackpath.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" rel="stylesheet" integrity="sha384-wvfXpqpZZVQGK6TAh5PVlGOfQNHSoD2xbE+QkPxCAFlNEevoEH3Sl0sibVcOQVnN" crossorigin="anonymous">
+    <link rel="stylesheet" href="//audiolabs.github.io/trackswitch.js/css/trackswitch.min.css" />
 
     <div class="player{}"{}>'''.format(unique_id, ' style="width:{}px"'.format(image_width) if seekable_image else '')
     if text:
@@ -354,8 +351,8 @@ def trackswitch(tracks, text='', seekable_image=None, seek_margin=None, mute=Tru
     html_code += '''
     </div>
 
-    <script src="https://code.jquery.com/jquery-3.2.1.min.js" integrity="sha256-hwg4gsxgFZhOsEEamdOYGBf13FyQuiTwlAQgxVSNgt4=" crossorigin="anonymous"></script>
-    <script src="https://audiolabs.github.io/trackswitch.js/js/trackswitch.min.js"></script>
+    <script src="//code.jquery.com/jquery-3.3.1.min.js" integrity="sha256-FgpCb/KJQlLNfOu91ta32o/NMZxltwRo8QtmkMRdAu8=" crossorigin="anonymous"></script>
+    <script src="//audiolabs.github.io/trackswitch.js/js/trackswitch.min.js"></script>
     <script type="text/javascript">
         jQuery(document).ready(function() {{
             jQuery(".player{}").trackSwitch({{mute: {}, solo: {}, globalsolo: {}, repeat: {}, radiosolo: {}, onlyradiosolo: {}, spacebar: {}, tabview: {}}});

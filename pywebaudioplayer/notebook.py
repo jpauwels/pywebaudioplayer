@@ -71,7 +71,7 @@ def wavesurfer(audio_path=None, controls={}, display={}, behaviour={}, samples=N
 
     html_code += '''
     <script type="text/javascript">
-    requirejs.config({{paths: {{wavesurfer: "//cdnjs.cloudflare.com/ajax/libs/wavesurfer.js/1.4.0/wavesurfer.min"}}}});
+    requirejs.config({{paths: {{wavesurfer: "//cdnjs.cloudflare.com/ajax/libs/wavesurfer.js/3.2.0/wavesurfer.min"}}}});
     requirejs(["wavesurfer"], function(WaveSurfer) {{
         wavesurfer{id} = WaveSurfer.create({{
             container: '#waveform{id}',
